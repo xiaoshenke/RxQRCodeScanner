@@ -21,3 +21,17 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+ext {
+    androidBuildtoolsversion = "24.0.3"
+    androidCompilesdkversion = 24
+    androidVersionname = "1.0"
+    androidVersioncode = 1
+    androidMinsdkversion = 15
+    androidTargetsdkversion = 24
+    espressoTestVersion = "2.2.2"
+    supportAndroidVersion = "24.2.1"
+    junitVersion = "4.12"
+    reactivexRxjavaVersion = "1.1.9"
+    reactivexRxandroidVersion = "1.2.1"
+}
+
