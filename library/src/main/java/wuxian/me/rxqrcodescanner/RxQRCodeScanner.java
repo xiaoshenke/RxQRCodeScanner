@@ -4,6 +4,8 @@ import android.content.Context;
 import android.view.SurfaceView;
 
 import rx.Observable;
+import rx.schedulers.Schedulers;
+import wuxian.me.rxqrcodescanner.camera.RxCamera;
 
 
 /**
@@ -15,6 +17,7 @@ public class RxQRCodeScanner {
 
     private SurfaceView surfaceView;
     private Context context;
+    private RxCamera camera;
 
     private RxQRCodeScanner(Context context, SurfaceView surfaceView) {
         this.context = context;
@@ -27,13 +30,19 @@ public class RxQRCodeScanner {
     }
 
     /**
-     * RxCamera.surfaceview().(每隔多少时间???)takeoneshot().observeon(Computation).map(decodefunction)
+     * RxCamera.surfaceview().start().(每隔多少时间???)takeoneshot().observeon(Computation).map(decodefunction)
      * .map(是否成功 成功则返回 失败再次takeoneshot)
+     * 像rxlifecycle那样有一个state的概念?
      *
      * @return
      */
     public Observable<String> start() {
-        return null;
+        if (camera == null) {
+            camera = new RxCamera.Builder().context(context).surfaceView(surfaceView).build();
+        }
+        return camera.oneshot()
+                .observeOn(Schedulers.computation())
+                .map(new PreviewToStringFunc(context));//TODO: success return fail request one shot..
     }
 
     public static class Builder {

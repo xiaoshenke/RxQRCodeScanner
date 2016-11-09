@@ -22,7 +22,7 @@ import wuxian.me.rxqrcodescanner.error.StartPreviewFailedException;
  * Created by ragnarok on 15/11/13.
  * the internal logic of camera
  */
-public class RxCameraInternal implements SurfaceHolder.Callback, Camera.PreviewCallback {
+public class CameraInternal implements SurfaceHolder.Callback, Camera.PreviewCallback {
 
     private static final String TAG = "RxCamera.CameraInternal";
 
@@ -30,7 +30,7 @@ public class RxCameraInternal implements SurfaceHolder.Callback, Camera.PreviewC
     private Camera camera;
 
     // the camera config
-    private RxCameraConfig cameraConfig;
+    private CameraConfig cameraConfig;
 
     private Context context;
 
@@ -66,11 +66,11 @@ public class RxCameraInternal implements SurfaceHolder.Callback, Camera.PreviewC
     private List<OnRxCameraPreviewFrameCallback> previewFrameCallbackList = new ArrayList<>();
     private List<OnRxCameraPreviewFrameCallback> oneshotPrevieFrameCallbackList = new ArrayList<>();
 
-    public void setConfig(RxCameraConfig config) {
+    public void setConfig(CameraConfig config) {
         this.cameraConfig = config;
     }
 
-    public RxCameraConfig getConfig() {
+    public CameraConfig getConfig() {
         return this.cameraConfig;
     }
 
@@ -413,7 +413,7 @@ public class RxCameraInternal implements SurfaceHolder.Callback, Camera.PreviewC
             camera.setPreviewCallback(null);
             camera.release();
 
-            RxCameraConfig.Builder builder = new RxCameraConfig.Builder();
+            CameraConfig.Builder builder = new CameraConfig.Builder();
             builder.from(getConfig());
             if (getConfig().isFaceCamera) {
                 builder.useBackCamera();

@@ -5,9 +5,9 @@ import android.hardware.Camera;
 
 /**
  * Created by ragnarok on 15/11/1.
- * store the config of camera, you must set the config from {@link RxCameraConfig.Builder}
+ * store the config of camera, you must set the config from {@link CameraConfig.Builder}
  */
-public class RxCameraConfig {
+public class CameraConfig {
 
     public static Point DEFAULT_PREFER_PREVIEW_SIZE = new Point(320, 240);
 
@@ -37,7 +37,7 @@ public class RxCameraConfig {
 
     public final boolean muteShutterSound;
 
-    public RxCameraConfig(Builder builder) {
+    public CameraConfig(Builder builder) {
         isFaceCamera = builder.isFaceCamera;
         currentCameraId = builder.currentCameraId;
         preferPreviewSize = builder.preferPreviewSize;
@@ -55,7 +55,7 @@ public class RxCameraConfig {
 
     @Override
     public String toString() {
-        StringBuilder result = new StringBuilder("RxCameraConfig ");
+        StringBuilder result = new StringBuilder("CameraConfig ");
         result.append(String.format("isFaceCamera: %b, currentCameraId: %d, ", isFaceCamera, currentCameraId));
         result.append(String.format("preferPreviewSize: %s, ", preferPreviewSize));
         result.append(String.format("minPreferPreviewFrameRate: %d, maxPreferPreviewFrameRate: %d, ", minPreferPreviewFrameRate, maxPreferPreviewFrameRate));
@@ -163,7 +163,7 @@ public class RxCameraConfig {
                 }
             }
             if (preferPreviewSize == null) {
-                preferPreviewSize = RxCameraConfig.DEFAULT_PREFER_PREVIEW_SIZE;
+                preferPreviewSize = CameraConfig.DEFAULT_PREFER_PREVIEW_SIZE;
             }
 
             Camera.CameraInfo cameraInfo = CameraUtil.getCameraInfo(currentCameraId);
@@ -173,7 +173,7 @@ public class RxCameraConfig {
             return this;
         }
 
-        public Builder from(RxCameraConfig config) {
+        public Builder from(CameraConfig config) {
             if (config.isFaceCamera) {
                 useFrontCamera();
             } else {
@@ -190,9 +190,9 @@ public class RxCameraConfig {
             return this;
         }
 
-        public RxCameraConfig build() {
+        public CameraConfig build() {
             setProperConfigVal();
-            return new RxCameraConfig(this);
+            return new CameraConfig(this);
         }
     }
 }
