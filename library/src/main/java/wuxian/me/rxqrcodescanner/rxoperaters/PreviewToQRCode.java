@@ -5,13 +5,14 @@ import android.util.Log;
 
 import rx.functions.Func1;
 import wuxian.me.rxqrcodescanner.camera.PreviewData;
+import wuxian.me.rxqrcodescanner.decode.DecodeResult;
 import wuxian.me.rxqrcodescanner.util.Result;
 
 /**
  * Created by wuxian on 10/11/2016.
  */
 
-public class PreviewToQRCode implements Func1<PreviewData, Result<String>> {
+public class PreviewToQRCode implements Func1<PreviewData, DecodeResult> {
     private static final String TAG = "NewPreviewFunc";
     private Context context;
 
@@ -20,9 +21,9 @@ public class PreviewToQRCode implements Func1<PreviewData, Result<String>> {
     }
 
     @Override
-    public Result call(PreviewData data) {
+    public DecodeResult call(PreviewData data) {
         Log.e(TAG, "in call data is " + data);
-        return Result.failure();  //test
+        return new DecodeResult(data.rxCamera, Result.<String>failure());  //test
         //return DecodeManager.getQrcodeFromPreviewData(context, data);
     }
 }

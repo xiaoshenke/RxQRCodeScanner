@@ -7,10 +7,12 @@ import android.graphics.Point;
  */
 
 public class PreviewData {
+    public RxCamera rxCamera;
     public Point resolution;
     public byte[] data;
 
-    public PreviewData(Point resolution, byte[] data) {
+    public PreviewData(RxCamera rxCamera, Point resolution, byte[] data) {
+        this.rxCamera = rxCamera;
         this.resolution = resolution;
         this.data = data;
     }

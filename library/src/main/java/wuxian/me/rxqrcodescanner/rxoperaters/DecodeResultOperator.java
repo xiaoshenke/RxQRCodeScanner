@@ -2,6 +2,8 @@ package wuxian.me.rxqrcodescanner.rxoperaters;
 
 import rx.Observable;
 import rx.Subscriber;
+import wuxian.me.rxqrcodescanner.camera.RxCamera;
+import wuxian.me.rxqrcodescanner.decode.DecodeResult;
 import wuxian.me.rxqrcodescanner.util.Result;
 
 /**
@@ -11,15 +13,15 @@ import wuxian.me.rxqrcodescanner.util.Result;
  * else we request another @RxCamera.oneshot
  */
 
-public class DecodeResult implements Observable.Operator<String, Result<String>> {
+public class DecodeResultOperator implements Observable.Operator<String, DecodeResult> {
     @Override
-    public Subscriber<Result<String>> call(Subscriber<? super String> child) {
+    public Subscriber<DecodeResult> call(Subscriber<? super String> child) {
         DecodeResultSubscriber parent = new DecodeResultSubscriber(child);
         child.add(parent);
         return parent;
     }
 
-    private class DecodeResultSubscriber extends Subscriber<Result<String>> {
+    private class DecodeResultSubscriber extends Subscriber<DecodeResult> {
         private Subscriber<? super String> child;
 
         public DecodeResultSubscriber(Subscriber<? super String> child) {
@@ -37,15 +39,16 @@ public class DecodeResult implements Observable.Operator<String, Result<String>>
         }
 
         @Override
-        public void onNext(Result<String> result) {
-            if (result.failed()) {  // if we fail,we request another oneshot
-                request(1); //FIXME: how to request a data from the origin Observable?
+        public void onNext(DecodeResult result) {
+            if (result.result.failed()) {  // if we fail,we request another oneshot
+                result.rxCamera.setRequestAnotherShot(true); //can'f find a better solution
             } else {
                 if (child.isUnsubscribed()) {
+                    //onCompleted(); ?????
                     return;
                 }
                 try {
-                    child.onNext(result.get());
+                    child.onNext(result.result.get());
                 } catch (Exception e) {
                     onError(e);
                 }
@@ -54,4 +57,5 @@ public class DecodeResult implements Observable.Operator<String, Result<String>>
 
         }
     }
+
 }

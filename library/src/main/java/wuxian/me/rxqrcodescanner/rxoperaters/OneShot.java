@@ -54,7 +54,7 @@ public class OneShot implements Observable.Operator<PreviewData, RxCamera> {
             if (oneshot) {
                 oneshot = false;
                 camera.setPreviewCallback(null); //just one shot!
-                child.onNext(new PreviewData(null, bytes));
+                child.onNext(new PreviewData(this.camera, null, bytes));
             }
         }
     }
