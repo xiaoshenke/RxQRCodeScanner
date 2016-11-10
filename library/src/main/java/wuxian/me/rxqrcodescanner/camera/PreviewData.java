@@ -1,4 +1,4 @@
-package wuxian.me.rxqrcodescanner;
+package wuxian.me.rxqrcodescanner.camera;
 
 import android.graphics.Point;
 

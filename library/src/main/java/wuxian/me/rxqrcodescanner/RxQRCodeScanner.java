@@ -7,6 +7,9 @@ import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 import wuxian.me.rxqrcodescanner.camera.RxCamera;
+import wuxian.me.rxqrcodescanner.rxoperaters.DecodeResult;
+import wuxian.me.rxqrcodescanner.rxoperaters.OneShot;
+import wuxian.me.rxqrcodescanner.rxoperaters.PreviewToQRCode;
 
 
 /**
@@ -28,12 +31,12 @@ public class RxQRCodeScanner {
         if (camera == null) {
             camera = new RxCamera.Builder().context(context).surfaceView(surfaceView).build();
         }
-        return camera.open()                            //open camera
-                .lift(new OneShot())            //take a picture
+        return camera.open()                         //open camera
+                .lift(new OneShot())                 //take a picture
                 .observeOn(Schedulers.computation())
-                .map(new PreviewToStringFunc(context))  //decode photo data
+                .map(new PreviewToQRCode(context))   //decode photo data
                 .observeOn(AndroidSchedulers.mainThread())
-                .lift(new DecodeResult());      //if fail take another shot,otherwise push data downstream
+                .lift(new DecodeResult());           //if fail take another shot,otherwise push data downstream
     }
 
     public static class Builder {

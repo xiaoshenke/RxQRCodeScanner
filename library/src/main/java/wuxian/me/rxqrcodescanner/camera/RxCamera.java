@@ -5,7 +5,6 @@ import android.graphics.ImageFormat;
 import android.graphics.Point;
 import android.hardware.Camera;
 import android.os.Build;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -14,10 +13,12 @@ import java.util.List;
 import rx.Observable;
 import rx.Producer;
 import rx.Subscriber;
-import wuxian.me.rxqrcodescanner.Preconditions;
+import wuxian.me.rxqrcodescanner.util.Preconditions;
 
 /**
  * Created by wuxian on 8/11/2016.
+ *
+ * RxCamera actual contains an Android.hardware.camera and provide some basic function.
  */
 
 public class RxCamera {
@@ -47,6 +48,12 @@ public class RxCamera {
             }
         }
         return true;
+    }
+
+    public void setPreviewCallback(Camera.PreviewCallback callback) {
+        if (camera != null) {
+            camera.setPreviewCallback(callback);
+        }
     }
 
     /**

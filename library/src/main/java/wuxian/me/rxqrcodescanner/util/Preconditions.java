@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package wuxian.me.rxqrcodescanner;
+package wuxian.me.rxqrcodescanner.util;
 
 import android.os.Looper;
+import android.support.annotation.NonNull;
 
 public final class Preconditions {
     public static void checkArgument(boolean assertion, String message) {
@@ -36,6 +37,15 @@ public final class Preconditions {
             throw new IllegalStateException(
                     "Must be called from the main thread. Was: " + Thread.currentThread());
         }
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @NonNull
+    public static <T> T checkNotNull(@NonNull final T object) {
+        if (object == null) {
+            throw new NullPointerException();
+        }
+        return object;
     }
 
     private Preconditions() {
