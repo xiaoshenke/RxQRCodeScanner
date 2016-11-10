@@ -39,6 +39,12 @@ public class RxQRCodeScanner {
                 .lift(new DecodeResult());           //if fail take another shot,otherwise push data downstream
     }
 
+    public void quit() {
+        if (camera != null) {
+            camera.quit();
+        }
+    }
+
     public static class Builder {
         private SurfaceView surfaceView;
         private Context context;

@@ -39,8 +39,11 @@ public class DecodeResult implements Observable.Operator<String, Result<String>>
         @Override
         public void onNext(Result<String> result) {
             if (result.failed()) {  // if we fail,we request another oneshot
-                request(1);
+                request(1); //FIXME: how to request a data from the origin Observable?
             } else {
+                if (child.isUnsubscribed()) {
+                    return;
+                }
                 try {
                     child.onNext(result.get());
                 } catch (Exception e) {

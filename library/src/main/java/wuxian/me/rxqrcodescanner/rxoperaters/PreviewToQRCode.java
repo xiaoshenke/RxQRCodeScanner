@@ -23,9 +23,7 @@ public class PreviewToQRCode implements Func1<PreviewData, Result<String>> {
     public Result call(PreviewData data) {
         Log.e(TAG, "in call data is " + data);
         return Result.failure();  //test
-
         //return DecodeManager.getQrcodeFromPreviewData(context, data);
-
     }
 }
 

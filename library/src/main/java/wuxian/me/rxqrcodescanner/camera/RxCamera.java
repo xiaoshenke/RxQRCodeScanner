@@ -63,6 +63,27 @@ public class RxCamera {
         return Observable.create(new RxCameraOnSubscribe());
     }
 
+    public synchronized void quit() {
+        if (camera != null) {
+            if (isPreviewing()) {
+                camera.stopPreview();
+            }
+
+            camera.setPreviewCallback(null);
+            try {
+                camera.release();
+            } catch (Exception e) {
+                ;
+            } finally {
+                isPreviewing = false;
+                alreadyInit = false;
+                cameraOpen = false;
+                camera = null;
+            }
+
+        }
+    }
+
     private boolean isOpen() {
         return camera != null && cameraOpen;
     }
@@ -204,6 +225,7 @@ public class RxCamera {
                 boolean open = rxcamera.openCamera();
                 if (!open) {
                     subscriber.onError(new Exception("open rxcamera error"));
+                    return;
                 }
             }
 
@@ -211,15 +233,22 @@ public class RxCamera {
                 boolean doinit = rxcamera.initCameraWithConfig();
                 if (!doinit) {
                     subscriber.onError(new Exception("init camera with cameraConfig error"));
+                    return;
                 }
+            }
+
+            if (subscriber.isUnsubscribed()) {
+                rxcamera.quit(); //never forget this!
+                return;
             }
 
             if (rxcamera.isPreviewing()) {
                 subscriber.onNext(rxcamera);
             } else {
                 SurfaceView sf = rxcamera.getSurfaceView();
-                if (sf == null || sf.getWindowToken() == null || sf.getHolder() == null) {
+                if (sf == null || sf.getHolder() == null) {
                     subscriber.onError(new Exception("surfaceview is invalid"));
+                    return;
                 }
                 sf.getHolder().addCallback(new SurfaceHolder.Callback() {
                     @Override
@@ -233,23 +262,24 @@ public class RxCamera {
 
                         rxcamera.startPreview();
                         rxcamera.setIsPreviewing(true);
+
+                        if (subscriber.isUnsubscribed()) {
+                            rxcamera.quit();
+                            return;
+                        }
                         subscriber.onNext(rxcamera);
                     }
 
                     @Override
                     public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-
                     }
 
                     @Override
                     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
                         rxcamera.setIsPreviewing(false);
-
                     }
                 });
             }
-
-
         }
     }
 
