@@ -1,7 +1,6 @@
 package wuxian.me.rxqrcodescanner.rxoperaters;
 
 import android.hardware.Camera;
-import android.os.Handler;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -23,15 +22,12 @@ public class OneShot implements Observable.Operator<PreviewData, RxCamera> {
         return parent;
     }
 
-    private class OneShotSubscriber extends Subscriber<RxCamera> implements Camera.PreviewCallback, Runnable {
+    private class OneShotSubscriber extends Subscriber<RxCamera> implements Camera.PreviewCallback {
         private RxCamera camera;
         Subscriber<? super PreviewData> child;
         private boolean oneshot = true;
-        Handler handler = new Handler();
-        private static final int DELAY_TIME = 1000;
 
         OneShotSubscriber(Subscriber<? super PreviewData> child) {
-            super(child);
             this.child = child;
         }
 
@@ -48,7 +44,9 @@ public class OneShot implements Observable.Operator<PreviewData, RxCamera> {
         @Override
         public void onNext(RxCamera rxCamera) {
             this.camera = rxCamera;
-            run(); //can't say a good way ,....
+            oneshot = true;
+            camera.setPreviewCallback(this);
+
         }
 
         @Override
@@ -56,34 +54,8 @@ public class OneShot implements Observable.Operator<PreviewData, RxCamera> {
             if (oneshot) {
                 oneshot = false;
                 camera.setPreviewCallback(null); //just one shot!
-
-                if (!child.isUnsubscribed()) {
-                    child.onNext(new PreviewData(this.camera, null, bytes));
-
-                    handler.postDelayed(this, DELAY_TIME);
-                }
+                child.onNext(new PreviewData(this.camera, null, bytes));
             }
-        }
-
-        private void executeInternal() {
-            oneshot = true;
-            camera.setPreviewCallback(this);
-        }
-
-        @Override
-        public void run() {
-            if (child.isUnsubscribed()) {
-                camera.quit(); //never forget this!
-                return;
-            }
-
-            if (camera.isRequestAnotherShot()) {  //keep check this
-                camera.setRequestAnotherShot(false);
-                executeInternal();
-            } else {
-                handler.postDelayed(this, DELAY_TIME);
-            }
-
         }
     }
 }

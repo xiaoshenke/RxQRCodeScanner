@@ -2,7 +2,9 @@ package wuxian.me.rxqrcodescanner.rxoperaters;
 
 import rx.Observable;
 import rx.Subscriber;
+import wuxian.me.rxqrcodescanner.camera.RxCamera;
 import wuxian.me.rxqrcodescanner.decode.DecodeResult;
+import wuxian.me.rxqrcodescanner.util.Result;
 
 /**
  * Created by wuxian on 10/11/2016.

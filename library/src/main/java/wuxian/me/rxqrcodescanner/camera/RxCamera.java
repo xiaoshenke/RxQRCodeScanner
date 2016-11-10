@@ -5,6 +5,7 @@ import android.graphics.ImageFormat;
 import android.graphics.Point;
 import android.hardware.Camera;
 import android.os.Build;
+import android.os.Handler;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -220,9 +221,12 @@ public class RxCamera {
         return true;
     }
 
-    public class RxCameraProducer implements Producer {
+    public class RxCameraProducer implements Producer, Runnable {
+        private static final int DELAY_TIME = 1000;
         private RxCamera rxcamera;
         private Subscriber<? super RxCamera> subscriber;
+
+        Handler handler = new Handler();
 
         public RxCameraProducer(Subscriber<? super RxCamera> subscriber, RxCamera camera) {
             this.rxcamera = camera;
@@ -231,15 +235,10 @@ public class RxCamera {
 
         @Override
         public void request(long n) {
-            executeInternal();
+            run();
         }
 
         private void executeInternal() {
-
-            if (subscriber.isUnsubscribed()) {
-                rxcamera.quit(); //never forget this!
-                return;
-            }
 
             Preconditions.checkUiThread();
             if (!rxcamera.isOpen()) {
@@ -260,6 +259,8 @@ public class RxCamera {
 
             if (rxcamera.isPreviewing()) {
                 subscriber.onNext(rxcamera);
+
+                handler.postDelayed(this, DELAY_TIME);
             } else {
                 SurfaceView sf = rxcamera.getSurfaceView();
                 if (sf == null || sf.getHolder() == null) {
@@ -284,6 +285,7 @@ public class RxCamera {
                             return;
                         }
                         subscriber.onNext(rxcamera);
+                        handler.postDelayed(RxCameraProducer.this, DELAY_TIME);
                     }
 
                     @Override
@@ -296,6 +298,22 @@ public class RxCamera {
                     }
                 });
             }
+        }
+
+        @Override
+        public void run() {
+            if (subscriber.isUnsubscribed()) {
+                rxcamera.quit(); //never forget this!
+                return;
+            }
+
+            if (rxcamera.isRequestAnotherShot()) {  //keep check this
+                rxcamera.setRequestAnotherShot(false);
+                executeInternal();
+            } else {
+                handler.postDelayed(this, DELAY_TIME);
+            }
+
         }
     }
 
