@@ -25,7 +25,6 @@ public class Shot implements Observable.Operator<PreviewData, RxCamera> {
     private class OneShotSubscriber extends Subscriber<RxCamera> implements Camera.PreviewCallback {
         private RxCamera camera;
         Subscriber<? super PreviewData> child;
-        private boolean oneshot = true;
 
         OneShotSubscriber(Subscriber<? super PreviewData> child) {
             this.child = child;
@@ -44,16 +43,13 @@ public class Shot implements Observable.Operator<PreviewData, RxCamera> {
         @Override
         public void onNext(RxCamera rxCamera) {
             this.camera = rxCamera;
-            oneshot = true;
             camera.setPreviewCallback(this);
-
         }
 
         @Override
-        public synchronized void onPreviewFrame(byte[] bytes, Camera camera) {
-            if (oneshot) {
-                oneshot = false;
-                camera.setPreviewCallback(null); //just one shot!
+        public void onPreviewFrame(byte[] bytes, Camera camera) {
+
+            if (!child.isUnsubscribed()) {
                 child.onNext(new PreviewData(this.camera, null, bytes));
             }
         }
