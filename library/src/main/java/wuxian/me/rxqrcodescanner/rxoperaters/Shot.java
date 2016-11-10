@@ -10,10 +10,10 @@ import wuxian.me.rxqrcodescanner.camera.RxCamera;
 /**
  * Created by wuxian on 10/11/2016.
  * <p>
- * OneShot of RxCamera
+ * Shot of RxCamera
  */
 
-public class OneShot implements Observable.Operator<PreviewData, RxCamera> {
+public class Shot implements Observable.Operator<PreviewData, RxCamera> {
 
     @Override
     public Subscriber<? super RxCamera> call(Subscriber<? super PreviewData> subscriber) {

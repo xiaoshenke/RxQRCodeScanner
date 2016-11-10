@@ -5,10 +5,13 @@ import android.view.SurfaceView;
 
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
+import wuxian.me.rxqrcodescanner.camera.PreviewData;
 import wuxian.me.rxqrcodescanner.camera.RxCamera;
 import wuxian.me.rxqrcodescanner.rxoperaters.DecodeResultOperator;
-import wuxian.me.rxqrcodescanner.rxoperaters.OneShot;
+import wuxian.me.rxqrcodescanner.rxoperaters.PreviewFilter;
+import wuxian.me.rxqrcodescanner.rxoperaters.Shot;
 import wuxian.me.rxqrcodescanner.rxoperaters.PreviewToQRCode;
 
 
@@ -33,7 +36,8 @@ public class RxQRCodeScanner {
         }
 
         return camera.open()                         //open camera
-                .lift(new OneShot())                 //take a picture
+                .lift(new Shot())                    //take  pictures
+                .filter(new PreviewFilter())         //only pass one preview downstream
                 .observeOn(Schedulers.computation())
                 .map(new PreviewToQRCode(context))   //decode photo data
                 .observeOn(AndroidSchedulers.mainThread())
