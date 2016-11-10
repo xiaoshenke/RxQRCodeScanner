@@ -29,11 +29,11 @@ public class RxQRCodeScanner {
             camera = new RxCamera.Builder().context(context).surfaceView(surfaceView).build();
         }
         return camera.open()                            //open camera
-                .lift(new OneShotOperator())            //take a picture
+                .lift(new OneShot())            //take a picture
                 .observeOn(Schedulers.computation())
                 .map(new PreviewToStringFunc(context))  //decode photo data
                 .observeOn(AndroidSchedulers.mainThread())
-                .lift(new DecodeResultOperator());      //if fail take another shot,otherwise push data downstream
+                .lift(new DecodeResult());      //if fail take another shot,otherwise push data downstream
     }
 
     public static class Builder {
@@ -44,12 +44,14 @@ public class RxQRCodeScanner {
             ;
         }
 
-        public void surfaceView(SurfaceView surfaceView) {
+        public Builder surfaceView(SurfaceView surfaceView) {
             this.surfaceView = surfaceView;
+            return this;
         }
 
-        public void context(Context context) {
+        public Builder context(Context context) {
             this.context = context;
+            return this;
         }
 
         public RxQRCodeScanner build() {

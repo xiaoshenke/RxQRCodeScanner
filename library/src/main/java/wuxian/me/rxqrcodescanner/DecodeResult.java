@@ -10,7 +10,7 @@ import rx.Subscriber;
  * else we request another @RxCamera.oneshot
  */
 
-public class DecodeResultOperator implements Observable.Operator<String, String> {
+public class DecodeResult implements Observable.Operator<String, String> {
     @Override
     public Subscriber<? super String> call(Subscriber<? super String> subscriber) {
         return null;
