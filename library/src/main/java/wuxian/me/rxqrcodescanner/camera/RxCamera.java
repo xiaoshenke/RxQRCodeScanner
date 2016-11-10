@@ -6,6 +6,7 @@ import android.view.SurfaceView;
 import rx.Observable;
 import rx.Subscriber;
 import wuxian.me.rxqrcodescanner.PreviewData;
+import wuxian.me.rxqrcodescanner.RxCameraProducer;
 
 /**
  * Created by wuxian on 8/11/2016.
@@ -17,15 +18,12 @@ public class RxCamera {
         ;
     }
 
-    public RxCamera open() {
-        return this;
-    }
-
-    public Observable<PreviewData> oneshot() {
-        return Observable.create(new Observable.OnSubscribe<PreviewData>() {
+    public Observable<RxCamera> open() {
+        return Observable.create(new Observable.OnSubscribe<RxCamera>() {
             @Override
-            public void call(Subscriber<? super PreviewData> subscriber) {
+            public void call(Subscriber<? super RxCamera> subscriber) {
 
+                subscriber.setProducer(new RxCameraProducer(subscriber, RxCamera.this));
             }
         });
     }
