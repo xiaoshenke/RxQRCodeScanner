@@ -147,11 +147,12 @@ public class RxCamera {
         return surfaceView;
     }
 
-    private void startPreview() {
+    public RxCamera startPreview() {
         if (camera != null) {
             camera.startPreview();
         }
-        setIsPreviewing(false);
+        setIsPreviewing(true);
+        return this;
     }
 
     private boolean setPreviewDisplay(SurfaceHolder holder) {
@@ -182,11 +183,12 @@ public class RxCamera {
         }
     };
 
-    public void autoFocus(boolean auto) {
+    public RxCamera autoFocus(boolean auto) {
         autoFocus = auto;
         if (camera != null && autoFocus) {
             camera.autoFocus(autoFocusCallback);
         }
+        return this;
     }
 
     private boolean initCameraWithConfig() {
@@ -335,7 +337,6 @@ public class RxCamera {
                         }
 
                         rxcamera.startPreview();
-                        rxcamera.setIsPreviewing(true);
                         rxcamera.autoFocus(true);
 
                         if (subscriber.isUnsubscribed()) {

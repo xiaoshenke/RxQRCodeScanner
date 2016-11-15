@@ -57,8 +57,15 @@ public class RxQRCodeScanner {
                 .lift(new DecodeResultOperator());   //if fail take another shot,otherwise push data downstream
     }
 
+    public void restart() {
+        if (camera != null) {
+            camera.startPreview().autoFocus(true).startScan().setRequestAnotherShot(true);
+        }
+    }
+
     public void quit() {
         if (camera != null) {
+            camera.setPreviewCallback(null);
             camera.quit();
         }
     }
