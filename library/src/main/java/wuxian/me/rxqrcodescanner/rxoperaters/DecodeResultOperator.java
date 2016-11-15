@@ -41,16 +41,16 @@ public class DecodeResultOperator implements Observable.Operator<String, DecodeR
 
         @Override
         public void onNext(DecodeResult result) {
-            if (result.result.failed()) {  // if we fail,we request another oneshot
-                result.rxCamera.setRequestAnotherShot(true); //can'f find a better solution
+            if (result.result.failed()) {
+                result.rxCamera.setRequestAnotherShot(true);
             } else {
                 if (child.isUnsubscribed()) {
-                    //onCompleted(); ?????
                     return;
                 }
                 try {
                     result.rxCamera.stopPreview();
                     result.rxCamera.autoFocus(false);
+                    result.rxCamera.stopScan();
                     child.onNext((String) result.result.get());
                 } catch (Exception e) {
                     onError(e);

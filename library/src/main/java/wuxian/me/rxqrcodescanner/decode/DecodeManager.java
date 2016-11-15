@@ -19,12 +19,11 @@ import java.util.NoSuchElementException;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
-import wuxian.me.rxqrcodescanner.camera.CameraConfig;
 import wuxian.me.rxqrcodescanner.camera.CameraUtil;
 import wuxian.me.rxqrcodescanner.camera.PreviewData;
 import wuxian.me.rxqrcodescanner.view.ViewfinderResultPointCallback;
 
-import static wuxian.me.rxqrcodescanner.camera.CameraUtil.getScreenResolution;
+import static wuxian.me.rxqrcodescanner.camera.CameraUtil.getScanviewRectInPreview;
 
 /**
  * Created by wuxian on 24/10/2016.
@@ -85,37 +84,6 @@ public final class DecodeManager {
         throw new DecodeException("no result");
     }
 
-    private static Rect getFramingRect(Context context) {
-        Point screenResolution = getScreenResolution(context);
-        Rect framingRect;
-        int width = screenResolution.x;
-        int height = screenResolution.y;
-
-        int leftOffset = (screenResolution.x - width) / 2;
-        int topOffset = (screenResolution.y - height) / 3;
-        framingRect = new Rect(leftOffset, topOffset, leftOffset + width,
-                topOffset + height);
-        return framingRect;
-    }
-
-    private static Rect getFramingRectInPreview(Context context, Camera camera) {
-
-        Rect frameRect = getFramingRect(context);
-        if (frameRect == null) {
-            return null;
-        }
-        Rect rect = new Rect(frameRect);
-        Point cameraResolution = CameraUtil.getCameraResolution(context, camera);
-        Point screenResolution = getScreenResolution(context);
-
-        rect.left = rect.left * cameraResolution.y / screenResolution.x;
-        rect.right = rect.right * cameraResolution.y / screenResolution.x;
-        rect.top = rect.top * cameraResolution.x / screenResolution.y;
-        rect.bottom = rect.bottom * cameraResolution.x / screenResolution.y;
-
-        return rect;
-    }
-
     private static PlanarYUVLuminanceSource getSourceFromPreviewData(Context context, PreviewData previewData) {
 
         byte[] data = previewData.data;
@@ -126,7 +94,7 @@ public final class DecodeManager {
         if (camera == null) {
             return null;
         }
-        Rect rect = getFramingRectInPreview(context, camera);
+        Rect rect = getScanviewRectInPreview(context, camera);
 
         int previewFormat = camera.getParameters().getPreviewFormat();
         String previewFormatString = camera.getParameters().get("preview-format");
@@ -175,8 +143,7 @@ public final class DecodeManager {
         }
 
         hints.put(DecodeHintType.NEED_RESULT_POINT_CALLBACK,
-                new ViewfinderResultPointCallback(null));  //Todo: replace last parameter
-
+                new ViewfinderResultPointCallback(null));
         return hints;
     }
 }

@@ -13,6 +13,7 @@ import com.google.zxing.ResultPoint;
  */
 
 public interface IScanView {
+
     void drawScanFrame();
 
     void stopDrawScanFrame();

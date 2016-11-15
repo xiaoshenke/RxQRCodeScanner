@@ -6,14 +6,15 @@ import android.view.SurfaceView;
 import android.widget.Toast;
 
 import rx.Subscriber;
-import rx.functions.Action1;
 import wuxian.me.rxqrcodescanner.RxQRCodeScanner;
+import wuxian.me.rxqrcodescanner.view.IScanView;
 
 public class MainActivity extends AppCompatActivity {
 
+    private IScanView scanView;
     private SurfaceView mSurfaceView;
     private Subscriber<String> subscriber;
-    RxQRCodeScanner scanner;
+    private RxQRCodeScanner scanner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,11 +22,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mSurfaceView = (SurfaceView) findViewById(R.id.surface);
+        scanView = (IScanView) findViewById(R.id.scanview);
 
         if (subscriber == null) {
             subscriber = new Subscriber<String>() {
                 @Override
                 public void onCompleted() {
+                    //won't be called in these library...
                 }
 
                 @Override
@@ -44,11 +47,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
         if (scanner == null) {
-            scanner = new RxQRCodeScanner.Builder().context(this).surfaceView(mSurfaceView).build();
+            scanner = new RxQRCodeScanner.Builder()
+                    .context(this)
+                    .surfaceView(mSurfaceView)
+                    .scanView(scanView)
+                    .build();
         }
-
         scanner.start().subscribe(subscriber);
     }
 

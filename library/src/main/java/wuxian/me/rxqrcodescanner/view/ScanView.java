@@ -22,6 +22,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.GradientDrawable;
 import android.util.AttributeSet;
@@ -33,6 +34,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import wuxian.me.rxqrcodescanner.R;
+import wuxian.me.rxqrcodescanner.camera.CameraUtil;
 
 public final class ScanView extends View implements IScanView {
 
@@ -50,6 +52,7 @@ public final class ScanView extends View implements IScanView {
     private Collection<ResultPoint> possibleResultPoints;
     private Collection<ResultPoint> lastPossibleResultPoints;
     private boolean laserLinePortrait = true;
+
     Rect mRect;
     int i = 0;
     GradientDrawable mDrawable;
@@ -80,13 +83,30 @@ public final class ScanView extends View implements IScanView {
         possibleResultPoints = new HashSet<ResultPoint>(5);
     }
 
+    private Rect framingRectForDraw;
+
+    public Rect getFramingRectForDraw() {
+        Point screenResolution = CameraUtil.getScreenResolution(getContext());
+        if (framingRectForDraw == null) {
+            int width = screenResolution.x * 2 / 3;
+            int height = screenResolution.y * 2 / 3;
+            if (width >= height) {
+                width = height;
+            } else {
+                height = width;
+            }
+
+            int leftOffset = (screenResolution.x - width) / 2;
+            int topOffset = (screenResolution.y - height) / 3;
+            framingRectForDraw = new Rect(leftOffset, topOffset, leftOffset
+                    + width, topOffset + height);
+        }
+        return framingRectForDraw;
+    }
+
     @Override
     public void onDraw(Canvas canvas) {
-        /*
-        if (CameraManager.get() == null) {
-            return;
-        }
-        Rect frame = CameraManager.get().getFramingRectForDraw();
+        Rect frame = getFramingRectForDraw();
         if (frame == null) {
             return;
         }
@@ -191,7 +211,7 @@ public final class ScanView extends View implements IScanView {
             postInvalidateDelayed(ANIMATION_DELAY, frame.left, frame.top,
                     frame.right, frame.bottom);
 
-        } */
+        }
     }
 
     @Override
@@ -214,8 +234,6 @@ public final class ScanView extends View implements IScanView {
     /**
      * Draw a bitmap with the result points highlighted instead of the live
      * scanning display.
-     *
-     * @param barcode An image of the decoded barcode.
      */
     public void drawResultBitmap(Bitmap barcode) {
         resultBitmap = barcode;
@@ -235,5 +253,4 @@ public final class ScanView extends View implements IScanView {
             invalidate();
         }
     }
-
 }

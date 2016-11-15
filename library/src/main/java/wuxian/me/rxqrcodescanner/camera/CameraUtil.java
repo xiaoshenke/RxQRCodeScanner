@@ -153,6 +153,36 @@ public class CameraUtil {
     private static Point sScreenResolution;
     private static Point sCameraResolution;
 
+    private static Rect getFramingRect(Context context) {
+        Point screenResolution = getScreenResolution(context);
+        Rect framingRect;
+        int width = screenResolution.x;
+        int height = screenResolution.y;
+
+        int leftOffset = (screenResolution.x - width) / 2;
+        int topOffset = (screenResolution.y - height) / 3;
+        framingRect = new Rect(leftOffset, topOffset, leftOffset + width,
+                topOffset + height);
+        return framingRect;
+    }
+
+    public static Rect getScanviewRectInPreview(Context context, Camera camera) {
+        Rect frameRect = getFramingRect(context);
+        if (frameRect == null) {
+            return null;
+        }
+        Rect rect = new Rect(frameRect);
+        Point cameraResolution = CameraUtil.getCameraResolution(context, camera);
+        Point screenResolution = getScreenResolution(context);
+
+        rect.left = rect.left * cameraResolution.y / screenResolution.x;
+        rect.right = rect.right * cameraResolution.y / screenResolution.x;
+        rect.top = rect.top * cameraResolution.x / screenResolution.y;
+        rect.bottom = rect.bottom * cameraResolution.x / screenResolution.y;
+
+        return rect;
+    }
+
     public static Point getScreenResolution(Context context) {
         if (sScreenResolution == null) {
             WindowManager manager = (WindowManager) context

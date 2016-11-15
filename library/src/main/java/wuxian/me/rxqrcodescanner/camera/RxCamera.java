@@ -7,6 +7,7 @@ import android.hardware.Camera;
 import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -15,7 +16,9 @@ import java.util.List;
 import rx.Observable;
 import rx.Producer;
 import rx.Subscriber;
+import wuxian.me.rxqrcodescanner.RxQRCodeScanner;
 import wuxian.me.rxqrcodescanner.util.Preconditions;
+import wuxian.me.rxqrcodescanner.view.IScanView;
 
 /**
  * Created by wuxian on 8/11/2016.
@@ -24,29 +27,30 @@ import wuxian.me.rxqrcodescanner.util.Preconditions;
 
 public class RxCamera {
     private Context context;
-    private SurfaceView surfaceView;
-    private CameraConfig cameraConfig;
-    private Point finalPreviewSize;
-    private boolean isPreviewing = false;
 
     private Camera camera;
+    private CameraConfig cameraConfig;
+
+    private IScanView scanView;
+    private SurfaceView surfaceView;
+
+    private boolean isPreviewing = false;
     private boolean cameraOpen = false;
+
     private boolean alreadyInit = false;
 
     private boolean requestAnotherShot = true;
 
-    private RxCamera(@NonNull Context context, @NonNull SurfaceView surfaceView, @NonNull CameraConfig config) {
+    private RxCamera(@NonNull Context context, @NonNull SurfaceView surfaceView,
+                     @NonNull CameraConfig config, @Nullable IScanView scanView) {
         this.context = context;
         this.surfaceView = surfaceView;
         this.cameraConfig = config;
+        this.scanView = scanView;
     }
 
     public Camera getNativeCamera() {
         return camera;
-    }
-
-    public CameraConfig getCameraConfig() {
-        return cameraConfig;
     }
 
     public void setRequestAnotherShot(boolean request) {
@@ -81,8 +85,22 @@ public class RxCamera {
         }
     }
 
+    public RxCamera startScan() {
+        if (scanView != null) {
+            scanView.drawScanFrame();
+        }
+        return this;
+    }
+
+    public RxCamera stopScan() {
+        if (scanView != null) {
+            scanView.stopDrawScanFrame();
+        }
+        return this;
+    }
+
     /**
-     * return a rxcamera which is open and startpreview
+     * return a rxcamera which is open and startpreview state
      */
     public Observable<RxCamera> open() {
         return Observable.create(new RxCameraOnSubscribe());
@@ -196,17 +214,13 @@ public class RxCamera {
                 if (cameraConfig.acceptSquarePreview) {
                     Point point = CameraUtil.getCameraResolution(context, camera);
                     parameters.setPreviewSize(point.x, point.y);
-                    finalPreviewSize = point;
                     //Camera.Size previewSize = CameraUtil.findClosestPreviewSize(camera, cameraConfig.preferPreviewSize);
-                    //parameters.setPreviewSize(previewSize.width, previewSize.height);  //FIXME: preview size和decode里面的大小不一致
-                    //finalPreviewSize = new Point(previewSize.width, previewSize.height);
+                    //parameters.setPreviewSize(previewSize.width, previewSize.height);
                 } else {
                     Point point = CameraUtil.getCameraResolution(context, camera);
                     parameters.setPreviewSize(point.x, point.y);
-                    finalPreviewSize = point;
                     //Camera.Size previewSize = CameraUtil.findClosestNonSquarePreviewSize(camera, cameraConfig.preferPreviewSize);
                     //parameters.setPreviewSize(previewSize.width, previewSize.height);
-                    //finalPreviewSize = new Point(previewSize.width, previewSize.height);
                 }
             } catch (Exception e) {
                 return false;
@@ -314,7 +328,7 @@ public class RxCamera {
                     @Override
                     public void surfaceCreated(SurfaceHolder surfaceHolder) {
                         surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-                        boolean setHolder = rxcamera.setPreviewDisplay(surfaceHolder);  //todo 这部分代码移到RxCamera里面
+                        boolean setHolder = rxcamera.setPreviewDisplay(surfaceHolder);
                         if (!setHolder) {
                             subscriber.onError(new Exception("setpreviewdisplay error"));
                             return;
@@ -355,6 +369,7 @@ public class RxCamera {
     public static class Builder {
         private Context context;
         private SurfaceView surfaceView;
+        private IScanView scanView;
         private CameraConfig config;
 
         public Builder() {
@@ -367,6 +382,11 @@ public class RxCamera {
 
         public Builder surfaceView(SurfaceView surfaceView) {
             this.surfaceView = surfaceView;
+            return this;
+        }
+
+        public Builder scanView(IScanView scanView) {
+            this.scanView = scanView;
             return this;
         }
 
@@ -392,7 +412,7 @@ public class RxCamera {
             if (config == null) {
                 config = buildDefaultConfig();
             }
-            return new RxCamera(context, surfaceView, config);
+            return new RxCamera(context, surfaceView, config, scanView);
         }
     }
 
