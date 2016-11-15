@@ -18,7 +18,6 @@ import wuxian.me.rxqrcodescanner.util.Preconditions;
 
 /**
  * Created by wuxian on 8/11/2016.
- *
  * RxCamera actual contains an Android.hardware.camera and provide some basic function.
  */
 
@@ -160,17 +159,23 @@ public class RxCamera {
         }
 
         // set preview size;
-        if (cameraConfig.preferPreviewSize != null) {
+        if (cameraConfig.preferPreviewSize != null) {  //don't care you
             try {
                 //check wether squared preview is accepted or not.
                 if (cameraConfig.acceptSquarePreview) {
-                    Camera.Size previewSize = CameraUtil.findClosestPreviewSize(camera, cameraConfig.preferPreviewSize);
-                    parameters.setPreviewSize(previewSize.width, previewSize.height);
-                    finalPreviewSize = new Point(previewSize.width, previewSize.height);
+                    Point point = CameraUtil.getCameraResolution(context, camera);
+                    parameters.setPreviewSize(point.x, point.y);
+                    finalPreviewSize = point;
+                    //Camera.Size previewSize = CameraUtil.findClosestPreviewSize(camera, cameraConfig.preferPreviewSize);
+                    //parameters.setPreviewSize(previewSize.width, previewSize.height);  //FIXME: preview size和decode里面的大小不一致
+                    //finalPreviewSize = new Point(previewSize.width, previewSize.height);
                 } else {
-                    Camera.Size previewSize = CameraUtil.findClosestNonSquarePreviewSize(camera, cameraConfig.preferPreviewSize);
-                    parameters.setPreviewSize(previewSize.width, previewSize.height);
-                    finalPreviewSize = new Point(previewSize.width, previewSize.height);
+                    Point point = CameraUtil.getCameraResolution(context, camera);
+                    parameters.setPreviewSize(point.x, point.y);
+                    finalPreviewSize = point;
+                    //Camera.Size previewSize = CameraUtil.findClosestNonSquarePreviewSize(camera, cameraConfig.preferPreviewSize);
+                    //parameters.setPreviewSize(previewSize.width, previewSize.height);
+                    //finalPreviewSize = new Point(previewSize.width, previewSize.height);
                 }
             } catch (Exception e) {
                 return false;

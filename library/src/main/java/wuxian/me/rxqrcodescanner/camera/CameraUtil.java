@@ -5,11 +5,14 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.os.Build;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.Surface;
 import android.view.WindowManager;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Created by ragnarok on 15/11/1.
@@ -18,6 +21,8 @@ import java.util.List;
 public class CameraUtil {
 
     private static final String TAG = "RxCamera.CameraUtil";
+
+    private static final Pattern COMMA_PATTERN = Pattern.compile(",");
 
     private static int frontCameraId = -1;
     private static int backCameraId = -1;
@@ -143,6 +148,92 @@ public class CameraUtil {
             result += "(" + range[0] + "," + range[1] + ") ";
         }
         return result;
+    }
+
+    private static Point sScreenResolution;
+    private static Point sCameraResolution;
+
+    public static Point getScreenResolution(Context context) {
+        if (sScreenResolution == null) {
+            WindowManager manager = (WindowManager) context
+                    .getSystemService(Context.WINDOW_SERVICE);
+            Display display = manager.getDefaultDisplay();
+            DisplayMetrics dm = new DisplayMetrics();
+            display.getMetrics(dm);
+            sScreenResolution = new Point(display.getWidth(), display.getHeight());
+        }
+        return sScreenResolution;
+    }
+
+    private static Point findBestPreviewSizeValue(
+            CharSequence previewSizeValueString, Point screenResolution) {
+        int bestX = 0;
+        int bestY = 0;
+        int diff = Integer.MAX_VALUE;
+        for (String previewSize : COMMA_PATTERN.split(previewSizeValueString)) {
+
+            previewSize = previewSize.trim();
+            int dimPosition = previewSize.indexOf('x');
+            if (dimPosition < 0) {
+                continue;
+            }
+
+            int newX;
+            int newY;
+            try {
+                newX = Integer.parseInt(previewSize.substring(0, dimPosition));
+                newY = Integer.parseInt(previewSize.substring(dimPosition + 1));
+            } catch (NumberFormatException nfe) {
+                //Log.w(TAG, "Bad preview-size: " + previewSize);
+                continue;
+            }
+
+            int newDiff = Math.abs(newX - screenResolution.x)
+                    + Math.abs(newY - screenResolution.y);
+            if (newDiff == 0) {
+                bestX = newX;
+                bestY = newY;
+                break;
+            } else if (newDiff < diff) {
+                bestX = newX;
+                bestY = newY;
+                diff = newDiff;
+            }
+
+        }
+
+        if (bestX > 0 && bestY > 0) {
+            return new Point(bestX, bestY);
+        }
+        return null;
+    }
+
+    public static Point getCameraResolution(Context context, Camera camera) {
+        if (sCameraResolution == null && camera != null) {
+            Camera.Parameters parameters = camera.getParameters();
+            Point screenResolution = getScreenResolution(context);
+            String previewSizeValueString = parameters.get("preview-size-values");
+            // saw this on Xperia
+            if (previewSizeValueString == null) {
+                previewSizeValueString = parameters.get("preview-size-value");
+            }
+
+            Point cameraResolution = null;
+
+            if (previewSizeValueString != null) {
+                cameraResolution = findBestPreviewSizeValue(previewSizeValueString,
+                        screenResolution);
+            }
+
+            if (cameraResolution == null) {
+                // Ensure that the camera resolution is a multiple of 8, as the
+                // screen may not be.
+                cameraResolution = new Point((screenResolution.x >> 3) << 3,
+                        (screenResolution.y >> 3) << 3);
+            }
+            sCameraResolution = cameraResolution;
+        }
+        return sCameraResolution;
     }
 
     public static Camera.Size findClosestPreviewSize(Camera camera, Point preferSize) {
