@@ -12,9 +12,9 @@ public class PreviewFilter implements Func1<PreviewData, Boolean> {
     public synchronized Boolean call(PreviewData previewData) {
         if (previewData.rxCamera.isRequestAnotherShot()) {
             previewData.rxCamera.setRequestAnotherShot(false);
-
-            previewData.data = null; //clear the data
             return true;
+        } else {
+            previewData.data = null;  //clear data
         }
         return false;
     }

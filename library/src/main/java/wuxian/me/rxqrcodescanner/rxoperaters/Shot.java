@@ -1,6 +1,7 @@
 package wuxian.me.rxqrcodescanner.rxoperaters;
 
 import android.hardware.Camera;
+import android.util.Log;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -23,6 +24,7 @@ public class Shot implements Observable.Operator<PreviewData, RxCamera> {
     }
 
     private class OneShotSubscriber extends Subscriber<RxCamera> implements Camera.PreviewCallback {
+        private static final String TAG = "OneShotSubscriber";
         private RxCamera camera;
         Subscriber<? super PreviewData> child;
 
@@ -48,8 +50,8 @@ public class Shot implements Observable.Operator<PreviewData, RxCamera> {
 
         @Override
         public void onPreviewFrame(byte[] bytes, Camera camera) {
-
-            if (!child.isUnsubscribed()) {
+            if (!child.isUnsubscribed() && bytes != null) {
+                Log.e(TAG, "byte " + bytes);
                 child.onNext(new PreviewData(this.camera, null, bytes));
             }
         }

@@ -9,9 +9,9 @@ import wuxian.me.rxqrcodescanner.util.Result;
 
 public class DecodeResult {
     public RxCamera rxCamera;
-    public Result<String> result;
+    public Result<Object> result;
 
-    public DecodeResult(RxCamera rxCamera, Result<String> result) {
+    public DecodeResult(RxCamera rxCamera, Result<Object> result) {
 
         this.rxCamera = rxCamera;
         this.result = result;

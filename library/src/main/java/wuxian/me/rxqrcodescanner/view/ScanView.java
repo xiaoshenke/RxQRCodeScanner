@@ -32,8 +32,7 @@ import com.google.zxing.ResultPoint;
 import java.util.Collection;
 import java.util.HashSet;
 
-import wuxian.me.zxingscanner.R;
-import wuxian.me.zxingscanner.normalversion.camera.CameraManager;
+import wuxian.me.rxqrcodescanner.R;
 
 public final class ScanView extends View implements IScanView {
 
@@ -83,6 +82,7 @@ public final class ScanView extends View implements IScanView {
 
     @Override
     public void onDraw(Canvas canvas) {
+        /*
         if (CameraManager.get() == null) {
             return;
         }
@@ -144,10 +144,6 @@ public final class ScanView extends View implements IScanView {
                 }
 
                 if ((i += 5) < frame.bottom - frame.top) {
-                    /*
-                     * canvas.drawRect(frame.left + 2, frame.top - 2 + i,
-					 * frame.right - 1, frame.top + 2 + i, paint);
-					 */
                     int r = 8;
                     mDrawable.setShape(GradientDrawable.RECTANGLE);
                     mDrawable.setGradientType(GradientDrawable.LINEAR_GRADIENT);
@@ -194,7 +190,8 @@ public final class ScanView extends View implements IScanView {
             // not the entire viewfinder mask.
             postInvalidateDelayed(ANIMATION_DELAY, frame.left, frame.top,
                     frame.right, frame.bottom);
-        }
+
+        } */
     }
 
     @Override

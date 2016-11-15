@@ -5,6 +5,7 @@ import android.graphics.ImageFormat;
 import android.graphics.Point;
 import android.hardware.Camera;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -34,10 +35,18 @@ public class RxCamera {
 
     private boolean requestAnotherShot = true;
 
-    private RxCamera(Context context, SurfaceView surfaceView, CameraConfig config) {
+    private RxCamera(@NonNull Context context, @NonNull SurfaceView surfaceView, @NonNull CameraConfig config) {
         this.context = context;
         this.surfaceView = surfaceView;
         this.cameraConfig = config;
+    }
+
+    public Camera getNativeCamera() {
+        return camera;
+    }
+
+    public CameraConfig getCameraConfig() {
+        return cameraConfig;
     }
 
     public void setRequestAnotherShot(boolean request) {

@@ -4,7 +4,12 @@ import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.hardware.Camera;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.Display;
+import android.view.WindowManager;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
@@ -14,8 +19,11 @@ import com.google.zxing.ReaderException;
 import com.google.zxing.common.HybridBinarizer;
 
 import java.util.Hashtable;
+import java.util.NoSuchElementException;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
+import wuxian.me.rxqrcodescanner.camera.CameraConfig;
 import wuxian.me.rxqrcodescanner.camera.PreviewData;
 import wuxian.me.rxqrcodescanner.view.ViewfinderResultPointCallback;
 
@@ -26,18 +34,26 @@ import wuxian.me.rxqrcodescanner.view.ViewfinderResultPointCallback;
 
 public final class DecodeManager {
     private static MultiFormatReader reader;
+    private static final Pattern COMMA_PATTERN = Pattern.compile(",");
 
     private DecodeManager() {
+        throw new NoSuchElementException("no instance");
     }
 
     public static String getQrcodeFromPreviewData(Context context, PreviewData input) throws DecodeException {
+        Camera camera = input.rxCamera.getNativeCamera();
+        if (camera == null) {
+            throw new DecodeException("can't get camera parameters");
+        }
+        Camera.Parameters parameters = camera.getParameters();
+        Point cameraResolution = getCameraResolution(parameters, getScreenResolution(context));
         if (reader == null) {
             init();
         }
 
         byte[] data = input.data;
-        int height = input.resolution.y;
-        int width = input.resolution.x;
+        int height = cameraResolution.y;  //resolution --> cameraResulotion
+        int width = cameraResolution.x;
 
         byte[] rotatedData = new byte[data.length];
         for (int y = 0; y < height; y++) {
@@ -68,17 +84,27 @@ public final class DecodeManager {
                 return code;
             }
         }
-
         throw new DecodeException("no result");
     }
 
-    private static Rect getFramingRect(Context context) {
-        /*CameraConfigurationManager configManager = QRCodeCamera.getInstance(context).getConfigManager();
-        if (configManager == null) {
-            return null;
-        }
+    private static Point sScreen;
+    private static Point sCamera;
 
-        Point screenResolution = configManager.getScreenResolution();
+    private static Point getScreenResolution(Context context) {
+        if (sScreen == null) {
+            WindowManager manager = (WindowManager) context
+                    .getSystemService(Context.WINDOW_SERVICE);
+            Display display = manager.getDefaultDisplay();
+            DisplayMetrics dm = new DisplayMetrics();
+            display.getMetrics(dm);
+
+            sScreen = new Point(display.getWidth(), display.getHeight());
+        }
+        return sScreen;
+    }
+
+    private static Rect getFramingRect(Context context) {
+        Point screenResolution = getScreenResolution(context);
         Rect framingRect;
         int width = screenResolution.x;
         int height = screenResolution.y;
@@ -88,46 +114,113 @@ public final class DecodeManager {
         framingRect = new Rect(leftOffset, topOffset, leftOffset + width,
                 topOffset + height);
         return framingRect;
-        */
-        return null;
     }
 
-    private static Rect getFramingRectInPreview(Context context) {
-        /*
+    private static Rect getFramingRectInPreview(Context context, Camera.Parameters parameters) {
+
         Rect frameRect = getFramingRect(context);
         if (frameRect == null) {
             return null;
         }
-
-        CameraConfigurationManager configManager = QRCodeCamera.getInstance(context).getConfigManager();
-
         Rect rect = new Rect(frameRect);
-        Point cameraResolution = configManager.getCameraResolution();
-        Point screenResolution = configManager.getScreenResolution();
+        Point cameraResolution = getCameraResolution(parameters, getScreenResolution(context));
+        Point screenResolution = getScreenResolution(context);
         rect.left = rect.left * cameraResolution.y / screenResolution.x;
         rect.right = rect.right * cameraResolution.y / screenResolution.x;
         rect.top = rect.top * cameraResolution.x / screenResolution.y;
         rect.bottom = rect.bottom * cameraResolution.x / screenResolution.y;
 
         return rect;
-        */
+    }
+
+    private static Point getCameraResolution(Camera.Parameters parameters, Point screenResolution) {
+        if (sCamera == null) {
+            String previewSizeValueString = parameters.get("preview-size-values");
+            // saw this on Xperia
+            if (previewSizeValueString == null) {
+                previewSizeValueString = parameters.get("preview-size-value");
+            }
+
+            Point cameraResolution = null;
+
+            if (previewSizeValueString != null) {
+                cameraResolution = findBestPreviewSizeValue(previewSizeValueString,
+                        screenResolution);
+            }
+
+            if (cameraResolution == null) {
+                // Ensure that the camera resolution is a multiple of 8, as the
+                // screen may not be.
+                cameraResolution = new Point((screenResolution.x >> 3) << 3,
+                        (screenResolution.y >> 3) << 3);
+            }
+            sCamera = cameraResolution;
+        }
+
+
+        return sCamera;
+    }
+
+    private static Point findBestPreviewSizeValue(
+            CharSequence previewSizeValueString, Point screenResolution) {
+        int bestX = 0;
+        int bestY = 0;
+        int diff = Integer.MAX_VALUE;
+        for (String previewSize : COMMA_PATTERN.split(previewSizeValueString)) {
+
+            previewSize = previewSize.trim();
+            int dimPosition = previewSize.indexOf('x');
+            if (dimPosition < 0) {
+                continue;
+            }
+
+            int newX;
+            int newY;
+            try {
+                newX = Integer.parseInt(previewSize.substring(0, dimPosition));
+                newY = Integer.parseInt(previewSize.substring(dimPosition + 1));
+            } catch (NumberFormatException nfe) {
+                //Log.w(TAG, "Bad preview-size: " + previewSize);
+                continue;
+            }
+
+            int newDiff = Math.abs(newX - screenResolution.x)
+                    + Math.abs(newY - screenResolution.y);
+            if (newDiff == 0) {
+                bestX = newX;
+                bestY = newY;
+                break;
+            } else if (newDiff < diff) {
+                bestX = newX;
+                bestY = newY;
+                diff = newDiff;
+            }
+
+        }
+
+        if (bestX > 0 && bestY > 0) {
+            return new Point(bestX, bestY);
+        }
         return null;
     }
 
     private static PlanarYUVLuminanceSource getSourceFromPreviewData(Context context, PreviewData previewData) {
-        /*
-        CameraConfigurationManager configManager = QRCodeCamera.getInstance(context).getConfigManager();
-        if (configManager == null) {
-            return null;
-        }
+        CameraConfig cameraConfig = previewData.rxCamera.getCameraConfig();
 
         byte[] data = previewData.data;
         int width = previewData.resolution.x;
         int height = previewData.resolution.y;
 
-        Rect rect = getFramingRectInPreview(context);
-        int previewFormat = configManager.getPreviewFormat();
-        String previewFormatString = configManager.getPreviewFormatString();
+        Camera camera = previewData.rxCamera.getNativeCamera();
+        if (camera == null) {
+            return null;
+        }
+        Camera.Parameters parameters = camera.getParameters();
+        Rect rect = getFramingRectInPreview(context, parameters);
+        int previewFormat = cameraConfig.previewFormat;
+
+        String previewFormatString = parameters.get("preview-format");
+        ;
         switch (previewFormat) {
             // This is the standard Android format which all devices are REQUIRED to
             // support.
@@ -151,9 +244,6 @@ public final class DecodeManager {
         }
         throw new IllegalArgumentException("Unsupported picture format: "
                 + previewFormat + '/' + previewFormatString);
-        */
-        return null;
-
     }
 
     private static void init() {

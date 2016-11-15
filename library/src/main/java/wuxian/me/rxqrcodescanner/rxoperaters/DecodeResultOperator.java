@@ -48,13 +48,11 @@ public class DecodeResultOperator implements Observable.Operator<String, DecodeR
                     return;
                 }
                 try {
-                    child.onNext(result.result.get());
+                    child.onNext((String) result.result.get());
                 } catch (Exception e) {
                     onError(e);
                 }
-
             }
-
         }
     }
 
