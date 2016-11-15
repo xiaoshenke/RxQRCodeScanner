@@ -4,7 +4,8 @@ RxQRCodeScanner is a RxJava version of [ZxingScanner](https://github.com/xiaoshe
 
 ##  Demo screenshot
 
-![DemoIcon](https://cl.ly/2f0a0O39202w)
+![DemoIcon](https://cl.ly/2f0a0O39202w)                 
+if you can't see the picture,go to this link: <https://cl.ly/2f0a0O39202w>
                        
 
 ### Usage                     
