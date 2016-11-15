@@ -49,6 +49,8 @@ public class DecodeResultOperator implements Observable.Operator<String, DecodeR
                     return;
                 }
                 try {
+                    result.rxCamera.stopPreview();
+                    result.rxCamera.autoFocus(false);
                     child.onNext((String) result.result.get());
                 } catch (Exception e) {
                     onError(e);

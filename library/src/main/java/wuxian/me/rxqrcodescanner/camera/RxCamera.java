@@ -5,6 +5,7 @@ import android.graphics.ImageFormat;
 import android.graphics.Point;
 import android.hardware.Camera;
 import android.os.Build;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -68,6 +69,12 @@ public class RxCamera {
         return true;
     }
 
+    public void stopPreview() {
+        if (camera != null) {
+            camera.stopPreview();
+        }
+    }
+
     public void setPreviewCallback(Camera.PreviewCallback callback) {
         if (camera != null) {
             camera.setPreviewCallback(callback);
@@ -126,6 +133,7 @@ public class RxCamera {
         if (camera != null) {
             camera.startPreview();
         }
+        setIsPreviewing(false);
     }
 
     private boolean setPreviewDisplay(SurfaceHolder holder) {
@@ -139,6 +147,29 @@ public class RxCamera {
         return true;
     }
 
+    private boolean autoFocus = false;
+    private Handler handler = new Handler();
+
+    private Camera.AutoFocusCallback autoFocusCallback = new Camera.AutoFocusCallback() {
+        @Override
+        public void onAutoFocus(boolean success, Camera camera) {
+            if (autoFocus) {
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        autoFocus(autoFocus);
+                    }
+                }, 1000);
+            }
+        }
+    };
+
+    public void autoFocus(boolean auto) {
+        autoFocus = auto;
+        if (camera != null && autoFocus) {
+            camera.autoFocus(autoFocusCallback);
+        }
+    }
 
     private boolean initCameraWithConfig() {
         Camera.Parameters parameters = null;
@@ -291,6 +322,7 @@ public class RxCamera {
 
                         rxcamera.startPreview();
                         rxcamera.setIsPreviewing(true);
+                        rxcamera.autoFocus(true);
 
                         if (subscriber.isUnsubscribed()) {
                             rxcamera.quit();
