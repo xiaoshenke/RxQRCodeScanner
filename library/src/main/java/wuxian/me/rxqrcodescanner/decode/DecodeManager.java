@@ -117,7 +117,6 @@ public final class DecodeManager {
     }
 
     private static PlanarYUVLuminanceSource getSourceFromPreviewData(Context context, PreviewData previewData) {
-        CameraConfig cameraConfig = previewData.rxCamera.getCameraConfig();
 
         byte[] data = previewData.data;
         int width = previewData.resolution.x;
@@ -128,8 +127,8 @@ public final class DecodeManager {
             return null;
         }
         Rect rect = getFramingRectInPreview(context, camera);
-        int previewFormat = cameraConfig.previewFormat;
 
+        int previewFormat = camera.getParameters().getPreviewFormat();
         String previewFormatString = camera.getParameters().get("preview-format");
         ;
         switch (previewFormat) {

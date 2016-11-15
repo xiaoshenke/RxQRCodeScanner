@@ -25,7 +25,6 @@ public class PreviewToQRCode implements Func1<PreviewData, DecodeResult> {
 
     @Override
     public DecodeResult call(PreviewData data) {
-        Log.e(TAG, "in call data is " + data.data);
 
         try {
             String code = DecodeManager.getQrcodeFromPreviewData(context, data);

@@ -1,10 +1,10 @@
 package wuxian.me.rxqrcodescanner.rxoperaters;
 
+import android.util.Log;
+
 import rx.Observable;
 import rx.Subscriber;
-import wuxian.me.rxqrcodescanner.camera.RxCamera;
 import wuxian.me.rxqrcodescanner.decode.DecodeResult;
-import wuxian.me.rxqrcodescanner.util.Result;
 
 /**
  * Created by wuxian on 10/11/2016.
@@ -14,6 +14,7 @@ import wuxian.me.rxqrcodescanner.util.Result;
  */
 
 public class DecodeResultOperator implements Observable.Operator<String, DecodeResult> {
+    private static final String TAG = "DecodeResult";
     @Override
     public Subscriber<DecodeResult> call(Subscriber<? super String> child) {
         DecodeResultSubscriber parent = new DecodeResultSubscriber(child);

@@ -1,5 +1,7 @@
 package wuxian.me.rxqrcodescanner.rxoperaters;
 
+import android.util.Log;
+
 import rx.functions.Func1;
 import wuxian.me.rxqrcodescanner.camera.PreviewData;
 
@@ -8,6 +10,7 @@ import wuxian.me.rxqrcodescanner.camera.PreviewData;
  */
 
 public class PreviewFilter implements Func1<PreviewData, Boolean> {
+    private static final String TAG = "Filter";
     @Override
     public synchronized Boolean call(PreviewData previewData) {
         if (previewData.rxCamera.isRequestAnotherShot()) {
